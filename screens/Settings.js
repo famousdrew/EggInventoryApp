@@ -1091,7 +1091,7 @@ const Settings = () => {
 
           <View style={styles.aboutItem}>
             <Text style={styles.aboutLabel}>© 2025</Text>
-            <Text style={styles.aboutValue}>Auggie Got Fired</Text>
+            <Text style={styles.aboutValue}>Fiddlehead Farm, LLC</Text>
           </View>
         </View>
 

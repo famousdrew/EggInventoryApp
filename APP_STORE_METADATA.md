@@ -163,7 +163,7 @@ Features include:
 
 ## Copyright
 
-© 2025 Auggie Got Fired
+© 2025 Fiddlehead Farm, LLC
 
 ---
 

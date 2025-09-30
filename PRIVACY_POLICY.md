@@ -99,7 +99,7 @@ If you have questions about this Privacy Policy or the App, please contact us:
 
 **Support:** https://github.com/auggie-got-fired/EggInventoryApp
 
-**Developer:** Auggie Got Fired
+**Developer:** Fiddlehead Farm, LLC
 
 ## Legal Compliance
 
@@ -119,4 +119,4 @@ The App is provided "as is" without warranty of any kind. We are not responsible
 
 ---
 
-© 2025 Auggie Got Fired
+© 2025 Fiddlehead Farm, LLC
