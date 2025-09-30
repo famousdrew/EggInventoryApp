@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start)",
+      "WebSearch",
+      "WebFetch(domain:docs.expo.dev)",
+      "Bash(npx expo install:*)",
+      "WebFetch(domain:dev.to)",
+      "Bash(cat:*)",
+      "Bash(npx expo prebuild:*)",
+      "Bash(keytool:*)",
+      "Bash(java:*)",
+      "Bash(echo $ANDROID_HOME)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
