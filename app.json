@@ -18,7 +18,8 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save egg labels.",
-        "NSPhotoLibraryAddUsageDescription": "This app needs to save egg labels to your photo library."
+        "NSPhotoLibraryAddUsageDescription": "This app needs to save egg labels to your photo library.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -38,8 +39,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "bd34a6fa-cc9c-4eb1-a7ee-bd81b4fb03f6"
       }
-    }
+    },
+    "owner": "famousdrew"
   }
 }

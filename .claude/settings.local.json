@@ -10,7 +10,10 @@
       "Bash(npx expo prebuild:*)",
       "Bash(keytool:*)",
       "Bash(java:*)",
-      "Bash(echo $ANDROID_HOME)"
+      "Bash(echo $ANDROID_HOME)",
+      "Bash(git --version)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
