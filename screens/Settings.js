@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { emailSalesData } from '../utils/dataExport';
 import { EGG_COLORS } from '../data/eggColors';
 import { createBackup, emailBackup, shareBackup, restoreFromBackup } from '../utils/backupRestore';
-import { SpeedModeStorage, FlockManagement } from '../data/storage';
+import { SpeedModeStorage, FlockManagement, FeedTracking } from '../data/storage';
 
 const Settings = () => {
   const [selectedTheme, setSelectedTheme] = useState('ORANGE_DRIP');
@@ -50,6 +50,11 @@ const Settings = () => {
     quail: 0,
     turkeys: 0,
     guinea_fowl: 0
+  });
+  const [feedTracking, setFeedTracking] = useState({
+    enabled: false,
+    costPerBag: '',
+    daysPerBag: ''
   });
 
   useEffect(() => {
@@ -94,6 +99,14 @@ const Settings = () => {
       // Load flock counts
       const savedFlockCounts = await FlockManagement.getFlockCounts();
       setFlockCounts(savedFlockCounts);
+
+      // Load feed tracking settings
+      const savedFeedSettings = await FeedTracking.getFeedSettings();
+      setFeedTracking({
+        enabled: savedFeedSettings.enabled,
+        costPerBag: savedFeedSettings.costPerBag.toString(),
+        daysPerBag: savedFeedSettings.daysPerBag.toString()
+      });
 
       // Apply loaded settings immediately
       if (savedTheme || savedDarkMode) {
@@ -221,6 +234,45 @@ const Settings = () => {
     } catch (error) {
       console.error('Error updating flock count:', error);
       Alert.alert('Error', 'Failed to update flock count');
+    }
+  };
+
+  const toggleFeedTracking = async (value) => {
+    try {
+      const newSettings = {
+        ...feedTracking,
+        enabled: value
+      };
+      const settings = {
+        enabled: value,
+        costPerBag: parseFloat(feedTracking.costPerBag) || 0,
+        daysPerBag: parseFloat(feedTracking.daysPerBag) || 0
+      };
+      await FeedTracking.saveFeedSettings(settings);
+      setFeedTracking(newSettings);
+    } catch (error) {
+      console.error('Error toggling feed tracking:', error);
+      Alert.alert('Error', 'Failed to save feed tracking setting');
+    }
+  };
+
+  const updateFeedCost = async (field, value) => {
+    try {
+      const newSettings = {
+        ...feedTracking,
+        [field]: value
+      };
+      setFeedTracking(newSettings);
+
+      // Save when user finishes typing (onBlur will be used)
+      const settings = {
+        enabled: feedTracking.enabled,
+        costPerBag: parseFloat(field === 'costPerBag' ? value : feedTracking.costPerBag) || 0,
+        daysPerBag: parseFloat(field === 'daysPerBag' ? value : feedTracking.daysPerBag) || 0
+      };
+      await FeedTracking.saveFeedSettings(settings);
+    } catch (error) {
+      console.error('Error updating feed cost:', error);
     }
   };
 
@@ -720,6 +772,85 @@ const Settings = () => {
               />
             </View>
           </View>
+
+          {/* Feed Cost Tracking Section */}
+          <Text style={styles.subSectionTitle}>🌾 Feed Cost Tracking</Text>
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingTitle}>Enable Feed Tracking</Text>
+              <Text style={styles.settingDescription}>
+                Calculate feed costs and profitability
+              </Text>
+            </View>
+            <Switch
+              value={feedTracking.enabled}
+              onValueChange={toggleFeedTracking}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={feedTracking.enabled ? colors.surface : colors.textLight}
+            />
+          </View>
+
+          {feedTracking.enabled && (
+            <>
+              <Text style={styles.instructions}>
+                Enter your feed costs to track profitability and cost per egg
+              </Text>
+
+              <View style={styles.settingItem}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingTitle}>Cost per Bag ($)</Text>
+                  <Text style={styles.settingDescription}>
+                    How much does one bag of feed cost?
+                  </Text>
+                </View>
+                <View style={styles.priceInputContainer}>
+                  <Text style={styles.priceSymbol}>$</Text>
+                  <TextInput
+                    style={styles.priceInput}
+                    value={feedTracking.costPerBag}
+                    onChangeText={(text) => {
+                      const cleanText = text.replace(/[^0-9.]/g, '');
+                      setFeedTracking({ ...feedTracking, costPerBag: cleanText });
+                    }}
+                    onBlur={() => updateFeedCost('costPerBag', feedTracking.costPerBag)}
+                    keyboardType="decimal-pad"
+                    placeholder="20.00"
+                    placeholderTextColor={colors.textLight}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.settingItem}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingTitle}>Days per Bag</Text>
+                  <Text style={styles.settingDescription}>
+                    How many days does one bag last?
+                  </Text>
+                </View>
+                <TextInput
+                  style={styles.feedDaysInput}
+                  value={feedTracking.daysPerBag}
+                  onChangeText={(text) => {
+                    const cleanText = text.replace(/[^0-9.]/g, '');
+                    setFeedTracking({ ...feedTracking, daysPerBag: cleanText });
+                  }}
+                  onBlur={() => updateFeedCost('daysPerBag', feedTracking.daysPerBag)}
+                  keyboardType="numeric"
+                  placeholder="7"
+                  placeholderTextColor={colors.textLight}
+                />
+              </View>
+
+              {feedTracking.costPerBag && feedTracking.daysPerBag && parseFloat(feedTracking.daysPerBag) > 0 && (
+                <View style={styles.feedCostSummary}>
+                  <Text style={styles.feedCostLabel}>Daily Feed Cost:</Text>
+                  <Text style={styles.feedCostValue}>
+                    ${(parseFloat(feedTracking.costPerBag) / parseFloat(feedTracking.daysPerBag)).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
 
           {!speedMode && (
             <>
@@ -1477,6 +1608,37 @@ const createStyles = (colors) => StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.background,
     textAlign: 'center',
+  },
+  feedDaysInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+    color: colors.text,
+    backgroundColor: colors.background,
+    textAlign: 'center',
+    minWidth: 80,
+  },
+  feedCostSummary: {
+    backgroundColor: colors.accent,
+    padding: 15,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  feedCostLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textOnAccent,
+  },
+  feedCostValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.textOnAccent,
   },
 });
 

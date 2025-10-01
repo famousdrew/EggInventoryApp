@@ -7,7 +7,8 @@ const STORAGE_KEYS = {
   SALES_HISTORY: 'sales_history',
   DAILY_COLLECTIONS: 'daily_collections',
   SPEED_MODE: 'speed_mode',
-  FLOCK_COUNTS: 'flock_head_counts'
+  FLOCK_COUNTS: 'flock_head_counts',
+  FEED_TRACKING: 'feed_tracking'
 };
 
 // Initialize empty inventory structure
@@ -155,7 +156,7 @@ export const BoxedEggsStorage = {
 
 // Daily collections tracking
 export const CollectionsStorage = {
-  async addCollection(colorCounts) {
+  async addCollection(colorCounts, notes = '') {
     try {
       const collections = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_COLLECTIONS);
       const collectionsArray = collections ? JSON.parse(collections) : [];
@@ -164,7 +165,8 @@ export const CollectionsStorage = {
         id: Date.now().toString(),
         date: new Date().toISOString(),
         colorCounts,
-        totalEggs: Object.values(colorCounts).reduce((sum, count) => sum + count, 0)
+        totalEggs: Object.values(colorCounts).reduce((sum, count) => sum + count, 0),
+        notes: notes || ''
       };
 
       collectionsArray.push(newCollection);
@@ -474,6 +476,95 @@ export const FlockManagement = {
     } catch (error) {
       console.error('Error calculating total bird count:', error);
       return 0;
+    }
+  }
+};
+
+// Feed Tracking functions
+export const FeedTracking = {
+  // Get feed tracking settings
+  async getFeedSettings() {
+    try {
+      const settings = await AsyncStorage.getItem(STORAGE_KEYS.FEED_TRACKING);
+      return settings ? JSON.parse(settings) : {
+        costPerBag: 0,
+        daysPerBag: 0,
+        enabled: false
+      };
+    } catch (error) {
+      console.error('Error loading feed settings:', error);
+      return {
+        costPerBag: 0,
+        daysPerBag: 0,
+        enabled: false
+      };
+    }
+  },
+
+  // Save feed tracking settings
+  async saveFeedSettings(settings) {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.FEED_TRACKING, JSON.stringify(settings));
+      return true;
+    } catch (error) {
+      console.error('Error saving feed settings:', error);
+      return false;
+    }
+  },
+
+  // Calculate daily feed cost
+  async getDailyFeedCost() {
+    try {
+      const settings = await this.getFeedSettings();
+      if (!settings.enabled || settings.daysPerBag === 0) {
+        return 0;
+      }
+      return settings.costPerBag / settings.daysPerBag;
+    } catch (error) {
+      console.error('Error calculating daily feed cost:', error);
+      return 0;
+    }
+  },
+
+  // Calculate cost per egg (requires flock count and daily egg average)
+  async getCostPerEgg(averageEggsPerDay) {
+    try {
+      const dailyCost = await this.getDailyFeedCost();
+      if (averageEggsPerDay === 0) {
+        return 0;
+      }
+      return dailyCost / averageEggsPerDay;
+    } catch (error) {
+      console.error('Error calculating cost per egg:', error);
+      return 0;
+    }
+  },
+
+  // Get profitability metrics
+  async getProfitabilityMetrics(totalEggsSold, totalRevenue, daysTracked) {
+    try {
+      const settings = await this.getFeedSettings();
+      if (!settings.enabled) {
+        return null;
+      }
+
+      const dailyCost = await this.getDailyFeedCost();
+      const totalFeedCost = dailyCost * daysTracked;
+      const profit = totalRevenue - totalFeedCost;
+      const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
+      const avgEggsPerDay = daysTracked > 0 ? totalEggsSold / daysTracked : 0;
+      const costPerEgg = await this.getCostPerEgg(avgEggsPerDay);
+
+      return {
+        totalFeedCost,
+        profit,
+        profitMargin,
+        costPerEgg,
+        dailyCost
+      };
+    } catch (error) {
+      console.error('Error calculating profitability:', error);
+      return null;
     }
   }
 };

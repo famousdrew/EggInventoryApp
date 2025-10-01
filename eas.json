@@ -21,6 +21,11 @@
         "buildType": "apk"
       },
       "ios": {}
+    },
+    "playstore": {
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {

@@ -36,6 +36,7 @@ const Collection = () => {
   const [turkeyCount, setTurkeyCount] = useState(0);
   const [guineaCount, setGuineaCount] = useState(0);
   const [enabledSpecies, setEnabledSpecies] = useState([]);
+  const [collectionNotes, setCollectionNotes] = useState('');
 
   useEffect(() => {
     // Initialize collection when enabled colors change
@@ -284,7 +285,7 @@ const Collection = () => {
               }
             }
 
-            await CollectionsStorage.addCollection(collectionData);
+            await CollectionsStorage.addCollection(collectionData, collectionNotes);
 
             const summaryText = summaryParts.join(', ') + ' eggs';
 
@@ -300,6 +301,7 @@ const Collection = () => {
                     setQuailCount(0);
                     setTurkeyCount(0);
                     setGuineaCount(0);
+                    setCollectionNotes('');
                   }
                 },
                 {
@@ -310,6 +312,7 @@ const Collection = () => {
                     setQuailCount(0);
                     setTurkeyCount(0);
                     setGuineaCount(0);
+                    setCollectionNotes('');
                     navigation.navigate('Boxing');
                   }
                 }
@@ -320,7 +323,7 @@ const Collection = () => {
           // Single-species speed mode: save total eggs
           if (totalEggs > 0) {
             await SpeedModeStorage.addTotalEggs(totalEggs);
-            await CollectionsStorage.addCollection({ total: totalEggs });
+            await CollectionsStorage.addCollection({ total: totalEggs }, collectionNotes);
 
             Alert.alert(
               'Collection Saved!',
@@ -328,12 +331,16 @@ const Collection = () => {
               [
                 {
                   text: 'Collect More',
-                  onPress: () => setTotalEggs(0)
+                  onPress: () => {
+                    setTotalEggs(0);
+                    setCollectionNotes('');
+                  }
                 },
                 {
                   text: 'Done',
                   onPress: () => {
                     setTotalEggs(0);
+                    setCollectionNotes('');
                     navigation.navigate('Boxing');
                   }
                 }
@@ -343,7 +350,7 @@ const Collection = () => {
         }
       } else {
         // Normal mode: save by color
-        await CollectionsStorage.addCollection(currentCollection);
+        await CollectionsStorage.addCollection(currentCollection, collectionNotes);
 
         // Add eggs to main inventory
         for (const [colorId, quantity] of Object.entries(currentCollection)) {
@@ -364,6 +371,7 @@ const Collection = () => {
                   resetCollection[color.id] = 0;
                 });
                 setCurrentCollection(resetCollection);
+                setCollectionNotes('');
               }
             },
             {
@@ -374,6 +382,7 @@ const Collection = () => {
                   resetCollection[color.id] = 0;
                 });
                 setCurrentCollection(resetCollection);
+                setCollectionNotes('');
                 navigation.navigate('Boxing');
               }
             }
@@ -542,15 +551,29 @@ const Collection = () => {
               {renderSpeciesButtons()}
 
               {getTotalSpeciesCount() > 0 && (
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={saveCollectionToInventory}
-                >
-                  <Ionicons name="save" size={24} color="white" />
-                  <Text style={styles.saveButtonText}>
-                    Collect {getTotalSpeciesCount()} eggs
-                  </Text>
-                </TouchableOpacity>
+                <>
+                  <View style={styles.notesContainer}>
+                    <Text style={styles.notesLabel}>📝 Daily Notes (optional)</Text>
+                    <TextInput
+                      style={styles.notesInput}
+                      value={collectionNotes}
+                      onChangeText={setCollectionNotes}
+                      placeholder="Weather, flock health, special observations..."
+                      placeholderTextColor={colors.textLight}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={saveCollectionToInventory}
+                  >
+                    <Ionicons name="save" size={24} color="white" />
+                    <Text style={styles.saveButtonText}>
+                      Collect {getTotalSpeciesCount()} eggs
+                    </Text>
+                  </TouchableOpacity>
+                </>
               )}
             </>
           ) : (
@@ -589,15 +612,29 @@ const Collection = () => {
               </View>
 
               {totalEggs > 0 && (
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={saveCollectionToInventory}
+                <>
+                  <View style={styles.notesContainer}>
+                    <Text style={styles.notesLabel}>📝 Daily Notes (optional)</Text>
+                    <TextInput
+                      style={styles.notesInput}
+                      value={collectionNotes}
+                      onChangeText={setCollectionNotes}
+                      placeholder="Weather, flock health, special observations..."
+                      placeholderTextColor={colors.textLight}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={saveCollectionToInventory}
                 >
                   <Ionicons name="save" size={24} color="white" />
                   <Text style={styles.saveButtonText}>
                     Collect {totalEggs} eggs
                   </Text>
                 </TouchableOpacity>
+                </>
               )}
             </>
           )
@@ -615,15 +652,29 @@ const Collection = () => {
             </View>
 
             {totalToday > 0 && (
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={saveCollectionToInventory}
-              >
-                <Ionicons name="save" size={24} color="white" />
-                <Text style={styles.saveButtonText}>
-                  Collect {totalToday} eggs
-                </Text>
-              </TouchableOpacity>
+              <>
+                <View style={styles.notesContainer}>
+                  <Text style={styles.notesLabel}>📝 Daily Notes (optional)</Text>
+                  <TextInput
+                    style={styles.notesInput}
+                    value={collectionNotes}
+                    onChangeText={setCollectionNotes}
+                    placeholder="Weather, flock health, special observations..."
+                    placeholderTextColor={colors.textLight}
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={saveCollectionToInventory}
+                >
+                  <Ionicons name="save" size={24} color="white" />
+                  <Text style={styles.saveButtonText}>
+                    Collect {totalToday} eggs
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
           </>
         )}
@@ -984,6 +1035,27 @@ const createStyles = (colors) => StyleSheet.create({
     justifyContent: 'center',
     gap: 15,
     maxWidth: '100%',
+  },
+  notesContainer: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  notesLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  notesInput: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    color: colors.text,
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
 });
 
