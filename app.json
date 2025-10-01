@@ -2,7 +2,7 @@
   "expo": {
     "name": "Egg Inventory",
     "slug": "EggInventoryApp",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fiddleheadfarm.egginventoryapp",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save egg labels.",
         "NSPhotoLibraryAddUsageDescription": "This app needs to save egg labels to your photo library.",
@@ -24,7 +24,7 @@
     },
     "android": {
       "package": "com.fiddleheadfarm.egginventoryapp",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
